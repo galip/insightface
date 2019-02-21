@@ -38,12 +38,14 @@ def main():
   if len(args.model) > 0:
       model =get_model(ctx, 112, args.model, 'fc1')
 
+  #aligned face
   img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
   # img = model.get_input(img)
 
   f1 = model.get_feature(img)
   print(f1[0:10])
 
+  #aligned face
   img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
   f2 = model.get_feature(img)
   print (f2)
