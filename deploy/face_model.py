@@ -15,14 +15,14 @@ import sklearn
 from sklearn.decomposition import PCA
 from time import sleep
 from easydict import EasyDict as edict
-from mtcnn_detector import MtcnnDetector
+#from mtcnn_detector import MtcnnDetector
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src', 'common'))
-import face_image
-import face_preprocess
+#import face_image
+#import face_preprocess
 
 
 def do_flip(data):
-  for idx in xrange(data.shape[0]):
+  for idx in range(data.shape[0]):
     data[idx,:,:] = np.fliplr(data[idx,:,:])
 
 def get_model(ctx, image_size, model_str, layer):
@@ -43,7 +43,8 @@ def get_model(ctx, image_size, model_str, layer):
 class FaceModel:
   def __init__(self, args):
     self.args = args
-    ctx = mx.gpu(args.gpu)
+    #ctx = mx.gpu(args.gpu)
+    ctx = mx.cpu(0)
     _vec = args.image_size.split(',')
     assert len(_vec)==2
     image_size = (int(_vec[0]), int(_vec[1]))
@@ -60,11 +61,11 @@ class FaceModel:
     #self.det_factor = 0.9
     self.image_size = image_size
     mtcnn_path = os.path.join(os.path.dirname(__file__), 'mtcnn-model')
-    if args.det==0:
-      detector = MtcnnDetector(model_folder=mtcnn_path, ctx=ctx, num_worker=1, accurate_landmark = True, threshold=self.det_threshold)
-    else:
-      detector = MtcnnDetector(model_folder=mtcnn_path, ctx=ctx, num_worker=1, accurate_landmark = True, threshold=[0.0,0.0,0.2])
-    self.detector = detector
+    #if args.det==0:
+      #detector = MtcnnDetector(model_folder=mtcnn_path, ctx=ctx, num_worker=1, accurate_landmark = True, threshold=self.det_threshold)
+    #else:
+      #detector = MtcnnDetector(model_folder=mtcnn_path, ctx=ctx, num_worker=1, accurate_landmark = True, threshold=[0.0,0.0,0.2])
+    #self.detector = detector
 
 
   def get_input(self, face_img):
@@ -78,8 +79,8 @@ class FaceModel:
     points = points[0,:].reshape((2,5)).T
     #print(bbox)
     #print(points)
-    nimg = face_preprocess.preprocess(face_img, bbox, points, image_size='112,112')
-    nimg = cv2.cvtColor(nimg, cv2.COLOR_BGR2RGB)
+    #nimg = face_preprocess.preprocess(face_img, bbox, points, image_size='112,112')
+    nimg = ""
     aligned = np.transpose(nimg, (2,0,1))
     return aligned
 
@@ -106,3 +107,25 @@ class FaceModel:
 
     return gender, age
 
+parser = argparse.ArgumentParser(description='face model test')
+# general
+parser.add_argument('--image-size', default='112,112', help='')
+parser.add_argument('--model', default='/home/galip/PycharmProjects/insightface/models/model,0', help='path to load model.')
+parser.add_argument('--ga-model', default='', help='path to load model.')
+parser.add_argument('--gpu', default=0, type=int, help='gpu id')
+parser.add_argument('--det', default=0, type=int, help='mtcnn option, 1 means using R+O, 0 means detect from begining')
+parser.add_argument('--flip', default=0, type=int, help='whether do lr flip aug')
+parser.add_argument('--threshold', default=1.24, type=float, help='ver dist threshold')
+args = parser.parse_args()
+
+model = FaceModel(args)
+img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
+#img = model.get_input(img)
+f1 = model.get_feature(img)
+print(f1[0:10])
+img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
+f2 = model.get_feature(img)
+
+print(f2)
+#diff = np.subtract(source_feature, target_feature)
+#dist = np.sum(np.square(diff),1)
