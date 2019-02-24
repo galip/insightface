@@ -8,6 +8,8 @@ import mxnet as mx
 
 import sklearn
 
+from os import walk
+
 parser = argparse.ArgumentParser(description='face model test')
 # general
 parser.add_argument('--image-size', default='112,112', help='')
@@ -34,14 +36,19 @@ def get_model(ctx, image_size, model_str, layer):
   model.set_params(arg_params, aux_params)
   return model
 
-def main():
-  model = face_model.FaceModel(args)
-  ctx = mx.cpu(0)
-  if len(args.model) > 0:
-      model =get_model(ctx, 112, args.model, 'fc1')
+#def main():
 
 
-  img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
+model = face_model.FaceModel(args)
+ctx = mx.cpu(0)
+if len(args.model) > 0:
+ model =get_model(ctx, 112, args.model, 'fc1')
+
+for dirpath, dirnames, filenames in walk("/home/galip/Desktop/InsightFace/GaussianBlur/blurredsource2/alignedface2/"):
+ for f in filenames:
+  print f
+  print dirpath
+  img = cv2.imread(dirpath + f)
   #img = model.get_input(img)
   nimg = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
   aligned = np.transpose(nimg, (2, 0, 1))
@@ -55,17 +62,16 @@ def main():
   model.forward(db, is_train=False)
   embedding = model.get_outputs()[0].asnumpy()
   embedding = sklearn.preprocessing.normalize(embedding).flatten()
+  #print(embedding)
 
-  name = '/home/galip/Desktop/SeNet/GaussianBlur/blurredsource5/repvector5/' + "yessss" + '.txt'
+  name = '/home/galip/Desktop/InsightFace/GaussianBlur/blurredsource2/repvector2/' + f.partition(".")[0] + '.txt'
   file = open(name, 'a')
   np.savetxt(name, embedding, delimiter=",")
   file.close()
-
-  print(embedding)
 
   #img = cv2.imread('/home/galip/PycharmProjects/insightface/deploy/Tom_Hanks_54745.png')
   #f2 = model.get_feature(img)
   #print (f2)
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+    #main()
